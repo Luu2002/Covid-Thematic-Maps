@@ -1,1 +1,1 @@
-# covid_thematic_maps
+# Covid Thematic Maps
