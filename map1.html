@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>COVID-19 Choropleth Rates Map</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.js'></script>
+    <style>
+        #legend {
+            background: white;
+            padding: 10px;
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            border-radius: 5px;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        #description {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: rgba(255,255,255,0.8);
+            margin: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .legend-key {
+          display: inline-block;
+          width: 16px;
+          height: 16px;
+          margin-right: 5px;
+          vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+<div id='map' style='width: 100%; height: 100vh;'></div>
+<div id="legend">
+  <strong>COVID-19 Rate per 100,000</strong>
+  <p>
+    <span class="legend-key" style="background-color: #abb7ed;"></span> 0-19<br>
+    <span class="legend-key" style="background-color: #d9a138;"></span> 20-39<br>
+    <span class="legend-key" style="background-color: #a860cc;"></span> 40-59<br>
+    <span class="legend-key" style="background-color: #dd5ca8;"></span> 60-79<br>
+    <span class="legend-key" style="background-color: #56c798;"></span> 80-99<br>
+    <span class="legend-key" style="background-color: #9f43d7;"></span> 100+<br>
+  </p>
+</div>
+<div id="description">Map description and data sources</div>
+
+<script>
+ mapboxgl.accessToken = 'pk.eyJ1IjoibHUyMDAyIiwiYSI6ImNsczVvNmtuMjFtbmsyaW85dGtvMGwzY3oifQ.tp2BJEaVd8-AnQZ310kBNw';
+
+var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/light-v10',
+    center: [-98.5795, 39.8283],
+    zoom: 3,
+    projection: 'albers'
+});
+
+map.on('load', function () {
+    map.addSource('covid-data', {
+        type: 'geojson',
+        data: 'assets/us-covid-2020-rates.geojson'
+    });
+
+    map.addLayer({
+        'id': 'covid-rates-layer',
+        'type': 'fill',
+        'source': 'covid-data',
+        'layout': {},
+        'paint': {
+            'fill-color': [
+                'interpolate',
+                ['linear'],
+                ['get', 'rates'],
+                0, '#abb7ed',
+                20, '#d9a138',
+                40, '#a860cc',
+                60, '#dd5ca8',
+                80, '#56c798',
+                100, '#9f43d7'
+            ],
+            'fill-opacity': 0.75
+        }
+    });
+
+    map.on('click', 'covid-rates-layer', function (e) {
+      if (e.features.length > 0) {
+        const feature = e.features[0];
+        const rate = feature.properties.rates;
+        const state = feature.properties.state;
+        const county = feature.properties.county;
+        const popupContent = `<h3>${county}, ${state}</h3>
+        <p>Rate: ${rate ? rate : 'No data'} per 100,000</p>`;
+        new mapboxgl.Popup()
+            .setLngLat(e.lngLat)
+            .setHTML(popupContent)
+            .addTo(map);
+      }
+    });
+
+    // Change the cursor to a pointer when over the layer
+    map.on('mouseenter', 'covid-rates-layer', function () {
+        map.getCanvas().style.cursor = 'pointer';
+    });
+    map.on('mouseleave', 'covid-rates-layer', function () {
+        map.getCanvas().style.cursor = '';
+    });
+
+    // Configure and add the legend
+    var legend = document.getElementById('legend');
+
+    // Add supplementary information
+    var description = document.getElementById('description');
+    description.innerHTML = '<strong>Map Title: COVID-19 Rates in the US</strong><p>This map visualizes the COVID-19 infection rates across different states and county. Data sources: "The New York Times"</p>';
+});
+</script>
+</body>
+</html>
+
