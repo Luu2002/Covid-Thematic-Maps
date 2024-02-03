@@ -104,7 +104,6 @@ map.on('load', function () {
       }
     });
 
-    // Change the cursor to a pointer when over the layer
     map.on('mouseenter', 'covid-rates-layer', function () {
         map.getCanvas().style.cursor = 'pointer';
     });
@@ -112,10 +111,7 @@ map.on('load', function () {
         map.getCanvas().style.cursor = '';
     });
 
-    // Configure and add the legend
     var legend = document.getElementById('legend');
-
-    // Add supplementary information
     var description = document.getElementById('description');
     description.innerHTML = '<strong>Map Title: COVID-19 Rates in the US</strong><p>This map visualizes the COVID-19 infection rates across different states and county. Data sources: "The New York Times"</p>';
 });
